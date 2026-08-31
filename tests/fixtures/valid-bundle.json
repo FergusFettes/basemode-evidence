@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "bundle_id": "01992df4-6c28-72f0-a67e-15fc23e6a912",
+  "generated_at": "2026-08-31T12:00:00Z",
+  "basemode_version": "0.2.0",
+  "window_start": "2026-08-30T00:00:00Z",
+  "window_end": "2026-08-31T00:00:00Z",
+  "observations": [
+    {
+      "endpoint": "anthropic/claude-sonnet-4-6",
+      "strategy": "system",
+      "source": "loom",
+      "source_version": "0.8.0",
+      "operations": 184,
+      "successful_operations": 181,
+      "initial_attempts": 184,
+      "successful_initial_attempts": 176,
+      "recovered_operations": 5,
+      "attempts": 191,
+      "failures": {"timeout": 2, "empty_response": 3, "rate_limit": 1},
+      "latency_ms": {"count": 181, "p50": 1840, "p95": 6210},
+      "ttft_ms": {"count": 178, "p50": 720, "p95": 2400},
+      "input_tokens": 43120,
+      "output_tokens": 29842,
+      "cost_usd": 1.2842
+    }
+  ]
+}
