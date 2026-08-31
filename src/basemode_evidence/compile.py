@@ -270,7 +270,7 @@ def compile_dataset(
     all_generated: list[str] = []
     contribution_root = repo / "contributions/v1"
     for path in sorted(contribution_root.glob("*/*/*.json")):
-        result = validate_bundle(path, root=repo, check_duplicates=False)
+        result = validate_bundle(path, root=repo, check_duplicates=False, check_clock=False)
         bundle = result.bundle
         bundle_id = bundle["bundle_id"]
         if bundle_id in seen:

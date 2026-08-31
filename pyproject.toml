@@ -20,6 +20,9 @@ basemode-evidence = "basemode_evidence.cli:main"
 [tool.hatch.build.targets.wheel]
 packages = ["src/basemode_evidence"]
 
+[tool.hatch.build.targets.wheel.force-include]
+"schemas" = "basemode_evidence/schemas"
+
 [tool.pytest.ini_options]
 addopts = "-q"
 testpaths = ["tests"]

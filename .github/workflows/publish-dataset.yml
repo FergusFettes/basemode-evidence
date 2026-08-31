@@ -1,0 +1,39 @@
+name: Publish dataset
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: "17 4 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: publish-dataset
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install .
+      - run: basemode-evidence compile
+      - uses: actions/upload-artifact@v4
+        with:
+          name: basemode-evidence-dataset
+          path: dist/
+      - name: Publish rolling release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view dataset-latest >/dev/null 2>&1 || \
+            gh release create dataset-latest --title "Latest evidence dataset" \
+              --notes "Rolling, checksum-verifiable basemode evidence dataset."
+          gh release upload dataset-latest dist/* --clobber

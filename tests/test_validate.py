@@ -2,12 +2,13 @@ from __future__ import annotations
 
 import json
 import shutil
+import subprocess
 from datetime import UTC, datetime
 from pathlib import Path
 
 import pytest
 
-from basemode_evidence.validate import ValidationError, validate_bundle
+from basemode_evidence.validate import ValidationError, validate_bundle, validate_pr
 
 ROOT = Path(__file__).parents[1]
 FIXTURE = ROOT / "tests/fixtures/valid-bundle.json"
@@ -15,7 +16,7 @@ NOW = datetime(2026, 8, 31, 13, tzinfo=UTC)
 
 
 def contribution(tmp_path: Path) -> Path:
-    (tmp_path / "schemas").mkdir()
+    (tmp_path / "schemas").mkdir(exist_ok=True)
     shutil.copy(ROOT / "schemas/contribution-v1.schema.json", tmp_path / "schemas")
     target = tmp_path / "contributions/v1/2026/08/01992df4-6c28-72f0-a67e-15fc23e6a912.json"
     target.parent.mkdir(parents=True)
@@ -74,3 +75,51 @@ def test_source_version_may_be_omitted(tmp_path: Path) -> None:
     path = contribution(tmp_path)
     mutate(path, lambda data: data["observations"][0].pop("source_version"))
     validate_bundle(path, root=tmp_path, now=NOW)
+
+
+def git(repo: Path, *args: str) -> str:
+    result = subprocess.run(
+        ["git", "-c", "user.name=Test", "-c", "user.email=test@example.com", *args],
+        cwd=repo,
+        check=True,
+        text=True,
+        capture_output=True,
+    )
+    return result.stdout.strip()
+
+
+def test_validates_one_file_contribution_pr(tmp_path: Path) -> None:
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    git(repo, "init", "-q")
+    (repo / "schemas").mkdir()
+    shutil.copy(ROOT / "schemas/contribution-v1.schema.json", repo / "schemas")
+    git(repo, "add", ".")
+    git(repo, "commit", "-qm", "base")
+    base = git(repo, "rev-parse", "HEAD")
+    path = contribution(repo)
+    git(repo, "add", ".")
+    git(repo, "commit", "-qm", "contribution")
+    head = git(repo, "rev-parse", "HEAD")
+
+    result = validate_pr(base, head, root=repo)
+    assert result.path == path
+
+
+def test_pr_rejects_unrelated_change(tmp_path: Path) -> None:
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    git(repo, "init", "-q")
+    (repo / "schemas").mkdir()
+    shutil.copy(ROOT / "schemas/contribution-v1.schema.json", repo / "schemas")
+    git(repo, "add", ".")
+    git(repo, "commit", "-qm", "base")
+    base = git(repo, "rev-parse", "HEAD")
+    contribution(repo)
+    (repo / "README.md").write_text("unrelated")
+    git(repo, "add", ".")
+    git(repo, "commit", "-qm", "invalid contribution")
+    head = git(repo, "rev-parse", "HEAD")
+
+    with pytest.raises(ValidationError, match="exactly one file"):
+        validate_pr(base, head, root=repo)

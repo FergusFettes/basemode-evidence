@@ -8,6 +8,7 @@ import re
 import subprocess
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
+from importlib import resources
 from pathlib import Path
 from typing import Any
 
@@ -68,6 +69,17 @@ def _load_json(path: Path, *, max_bytes: int = MAX_FILE_BYTES) -> Any:
         raise ValidationError(f"invalid JSON: {exc}") from exc
 
 
+def _load_schema(repo: Path, name: str) -> Any:
+    source_schema = repo / "schemas" / name
+    if source_schema.is_file():
+        return _load_json(source_schema)
+    try:
+        packaged = resources.files("basemode_evidence").joinpath("schemas", name)
+        return json.loads(packaged.read_text(encoding="utf-8"))
+    except (FileNotFoundError, ModuleNotFoundError, json.JSONDecodeError) as exc:
+        raise ValidationError(f"could not locate pinned schema {name}") from exc
+
+
 def _utc(value: str) -> datetime:
     return datetime.fromisoformat(value.replace("Z", "+00:00"))
 
@@ -97,7 +109,9 @@ def _scan(value: Any, location: str = "$") -> list[str]:
     return errors
 
 
-def _semantic_errors(bundle: dict[str, Any], *, now: datetime | None = None) -> list[str]:
+def _semantic_errors(
+    bundle: dict[str, Any], *, now: datetime | None = None, check_clock: bool = True
+) -> list[str]:
     errors: list[str] = []
     start = _utc(bundle["window_start"])
     end = _utc(bundle["window_end"])
@@ -109,7 +123,7 @@ def _semantic_errors(bundle: dict[str, Any], *, now: datetime | None = None) -> 
         errors.append(f"aggregation window exceeds {MAX_WINDOW.days} days")
     if generated < end:
         errors.append("generated_at must not precede window_end")
-    if generated > current + MAX_FUTURE_SKEW:
+    if check_clock and generated > current + MAX_FUTURE_SKEW:
         errors.append("generated_at is too far in the future")
 
     dimensions: set[tuple[str, str, str, str | None]] = set()
@@ -168,12 +182,19 @@ def validate_bundle(
     enforce_path: bool = True,
     check_duplicates: bool = True,
     now: datetime | None = None,
+    check_clock: bool = True,
 ) -> ValidationResult:
     """Validate one contribution against the pinned schema and semantic rules."""
     bundle_path = Path(path).resolve()
-    repo = Path(root).resolve() if root else repository_root(bundle_path)
+    if root:
+        repo = Path(root).resolve()
+    else:
+        try:
+            repo = repository_root(bundle_path)
+        except ValidationError:
+            repo = Path.cwd().resolve()
     bundle = _load_json(bundle_path)
-    schema = _load_json(repo / "schemas/contribution-v1.schema.json")
+    schema = _load_schema(repo, "contribution-v1.schema.json")
     validator = Draft202012Validator(schema, format_checker=FormatChecker())
     schema_errors = sorted(validator.iter_errors(bundle), key=lambda error: list(error.path))
     if schema_errors:
@@ -182,7 +203,7 @@ def validate_bundle(
         )
         raise ValidationError(f"schema validation failed: {rendered}")
 
-    errors = _semantic_errors(bundle, now=now) + _scan(bundle)
+    errors = _semantic_errors(bundle, now=now, check_clock=check_clock) + _scan(bundle)
     try:
         relative = bundle_path.relative_to(repo).as_posix()
     except ValueError:
@@ -222,4 +243,10 @@ def validate_pr(base: str, head: str, *, root: str | Path | None = None) -> Vali
     parts = changes[0].split("\t")
     if len(parts) != 2 or parts[0] != "A" or not CONTRIBUTION_PATH.fullmatch(parts[1]):
         raise ValidationError("PR must only add one contributions/v1/YYYY/MM/<bundle-id>.json file")
+    bundle_id = Path(parts[1]).stem
+    historical_paths = _git(
+        repo, "log", base, "--name-only", "--pretty=format:", "--", "contributions/v1"
+    ).splitlines()
+    if any(Path(path).stem == bundle_id for path in historical_paths if path):
+        raise ValidationError("bundle_id already exists in repository history")
     return validate_bundle(repo / parts[1], root=repo)
