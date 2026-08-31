@@ -8,14 +8,41 @@ version = "0.1.0"
 description = "Validate and compile privacy-preserving basemode evidence bundles"
 readme = "README.md"
 requires-python = ">=3.11"
-license = {text = "MIT"}
+license = "MIT"
+authors = [{name = "Fergus Fettes", email = "fergusfettes@gmail.com"}]
+keywords = ["llm", "evidence", "privacy", "reliability", "datasets"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Scientific/Engineering :: Information Analysis",
+    "Typing :: Typed",
+]
 dependencies = ["jsonschema[format]>=4.23"]
 
-[project.optional-dependencies]
-dev = ["pytest>=8.3", "ruff>=0.9"]
+[project.urls]
+Homepage = "https://github.com/FergusFettes/basemode-evidence"
+Source = "https://github.com/FergusFettes/basemode-evidence"
+Issues = "https://github.com/FergusFettes/basemode-evidence/issues"
+Specification = "https://github.com/FergusFettes/basemode-evidence/blob/main/SPEC.md"
 
 [project.scripts]
 basemode-evidence = "basemode_evidence.cli:main"
+
+[dependency-groups]
+dev = [
+    "pre-commit>=3.7",
+    "pytest>=8.3",
+    "pytest-cov>=5",
+    "ruff==0.15.11",
+]
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/basemode_evidence"]
@@ -29,7 +56,23 @@ testpaths = ["tests"]
 
 [tool.ruff]
 line-length = 100
+src = ["src"]
 target-version = "py311"
 
 [tool.ruff.lint]
-select = ["E", "F", "I", "UP", "B"]
+select = ["E", "F", "I", "UP", "B", "RUF"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["basemode_evidence"]
+
+[tool.coverage.run]
+branch = true
+source = ["basemode_evidence"]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = true
+exclude_also = [
+    "if TYPE_CHECKING:",
+    "if __name__ == .__main__.:",
+]

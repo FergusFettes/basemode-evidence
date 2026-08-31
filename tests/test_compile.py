@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import shutil
 import sqlite3
+from contextlib import closing
 from pathlib import Path
 
 from basemode_evidence.compile import compile_dataset
@@ -36,7 +37,7 @@ def test_compiles_json_and_sqlite(tmp_path: Path) -> None:
     assert endpoint["logical_success_rate"] == 181 / 184
     assert endpoint["percentile_summaries"][0]["bundle_id"] == BUNDLE_ID
 
-    with sqlite3.connect(output / "endpoint_evidence.sqlite") as connection:
+    with closing(sqlite3.connect(output / "endpoint_evidence.sqlite")) as connection:
         assert connection.execute("SELECT count(*) FROM bundles").fetchone() == (1,)
         assert connection.execute("SELECT operations FROM observations").fetchone() == (184,)
 
@@ -78,6 +79,6 @@ def test_revocation_excludes_bundle_and_preserves_provenance(tmp_path: Path) -> 
     assert provenance["bundles"][0]["status"] == "revoked"
     assert provenance["revocations"] == [revocation]
 
-    with sqlite3.connect(output / "endpoint_evidence.sqlite") as connection:
+    with closing(sqlite3.connect(output / "endpoint_evidence.sqlite")) as connection:
         assert connection.execute("SELECT count(*) FROM bundles").fetchone() == (0,)
         assert connection.execute("SELECT reason FROM revocations").fetchone() == ("producer_bug",)

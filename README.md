@@ -64,8 +64,9 @@ provenance and SQLite.
 ## Development
 
 ```bash
-python -m venv .venv
-.venv/bin/pip install -e '.[dev]'
-.venv/bin/pytest
-.venv/bin/ruff check .
+uv sync --locked --group dev
+make check
 ```
+
+Install the optional local hooks with `uv run pre-commit install`. The same lint, test, build, and
+wheel-install checks run in CI on every code change.
