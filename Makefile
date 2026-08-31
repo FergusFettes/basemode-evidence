@@ -1,15 +1,21 @@
-.PHONY: build check clean compile format lint pre-commit test
+.PHONY: build check clean compile docs-build docs-serve format lint pre-commit test
 
 build:
 	uv build
 
-check: lint test build
+check: lint test docs-build build
 
 clean:
 	rm -rf build dist .pytest_cache .ruff_cache *.egg-info
 
 compile:
 	uv run basemode-evidence compile
+
+docs-build:
+	uv run mkdocs build --strict
+
+docs-serve:
+	uv run mkdocs serve -a localhost:8002
 
 format:
 	uv run ruff check --fix src tests

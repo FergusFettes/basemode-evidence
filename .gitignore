@@ -3,6 +3,7 @@
 /.ruff_cache/
 /.coverage
 /dist/
+/site/
 *.egg-info/
 __pycache__/
 *.py[cod]

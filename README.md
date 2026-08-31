@@ -1,16 +1,21 @@
 # basemode-evidence
 
+[![CI](https://github.com/FergusFettes/basemode-evidence/actions/workflows/ci.yml/badge.svg)](https://github.com/FergusFettes/basemode-evidence/actions/workflows/ci.yml)
+[![Docs](https://img.shields.io/badge/docs-mkdocs-blue.svg)](https://fergusfettes.github.io/basemode-evidence/)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
 Public, append-only, privacy-preserving aggregates of real basemode endpoint calls.
 
 The repository validates one-file contribution pull requests and compiles accepted bundles into
 deterministic JSON and SQLite datasets. It never accepts prompts, generated text, individual call
 records, stable user identifiers, or provider credentials.
 
-See [SPEC.md](SPEC.md) for the complete contract.
+The [documentation](https://fergusfettes.github.io/basemode-evidence/) describes the contribution
+contract, privacy boundary, validation policy, compiled artifacts, and release process.
 
 > [!IMPORTANT]
 > `schemas/contribution-v1.schema.json` is a provisional pinned schema matching the current
-> specification. It will be replaced by the canonical basemode-generated schema and fixtures once
+> documented contract. It will be replaced by the canonical basemode-generated schema and fixtures once
 > that exporter lands. Existing schema versions remain pinned after publication.
 
 ## Contributing evidence
@@ -70,3 +75,6 @@ make check
 
 Install the optional local hooks with `uv run pre-commit install`. The same lint, test, build, and
 wheel-install checks run in CI on every code change.
+
+Build or serve the documentation locally with `make docs-build` or `make docs-serve`. For repository
+orientation and change checklists, see the [agent quickstart](https://fergusfettes.github.io/basemode-evidence/Agent-Quickstart/).
