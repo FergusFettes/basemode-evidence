@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/basemode/basemode-evidence/schemas/revocation-v1.schema.json",
+  "title": "basemode evidence revocation v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "bundle_id", "revoked_at", "reason"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "bundle_id": {
+      "type": "string",
+      "format": "uuid",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "revoked_at": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?Z$",
+      "maxLength": 32
+    },
+    "reason": {
+      "enum": ["producer_bug", "privacy_issue", "duplicate", "invalid_data"]
+    }
+  }
+}
