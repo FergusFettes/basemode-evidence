@@ -49,3 +49,7 @@ jobs:
             dist/manifest.json \
             dist/SHA256SUMS \
             --clobber
+      - name: Advance rolling release tag
+        run: |
+          git tag --force dataset-latest "$GITHUB_SHA"
+          git push origin refs/tags/dataset-latest --force
