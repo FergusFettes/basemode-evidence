@@ -51,7 +51,9 @@ Failure keys are restricted to `authentication`, `quota`, `rate_limit`, `timeout
 `provider_unavailable`, `invalid_request`, `empty_response`, `content_filter`, `provider_error`,
 `cancelled`, and `unknown`.
 
-Latency and TTFT contain only `count`, `p50`, and `p95`. Token and cost totals are optional. Basemode's
+Latency and TTFT contain only `count`, `p50`, and `p95`. Latency is measured once per logical
+operation, so its `count` cannot exceed `successful_operations`; TTFT is measured on each provider
+request that produced a token, so its `count` is bounded by `attempts` instead. Token and cost totals are optional. Basemode's
 local `prompt_tokens` and `completion_tokens` intentionally serialize as `input_tokens` and
 `output_tokens` in this public schema.
 

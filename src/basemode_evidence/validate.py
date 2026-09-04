@@ -141,8 +141,11 @@ def _semantic_errors(
         if sum(row["failures"].values()) > row["attempts"]:
             errors.append(f"{prefix}: summed failures must not exceed attempts")
         metrics = (
+            # Latency is per logical operation, but TTFT is per provider
+            # request that produced a token, and one operation can have
+            # several of those.
             ("latency_ms", "successful_operations"),
-            ("ttft_ms", "successful_operations"),
+            ("ttft_ms", "attempts"),
         )
         for metric, population in metrics:
             if metric not in row:

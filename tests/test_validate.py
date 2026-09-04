@@ -51,6 +51,14 @@ def test_valid_bundle(tmp_path: Path) -> None:
             "p50 must not exceed p95",
         ),
         (
+            lambda data: data["observations"][0]["latency_ms"].update({"count": 190}),
+            "latency_ms.count must not exceed successful_operations",
+        ),
+        (
+            lambda data: data["observations"][0]["ttft_ms"].update({"count": 192}),
+            "ttft_ms.count must not exceed attempts",
+        ),
+        (
             lambda data: data["observations"][0].update({"endpoint": "https://example.com"}),
             "does not match",
         ),
@@ -69,6 +77,21 @@ def test_path_must_match_bundle(tmp_path: Path) -> None:
     path.rename(wrong)
     with pytest.raises(ValidationError, match="filename stem"):
         validate_bundle(wrong, root=tmp_path, now=NOW)
+
+
+def test_ttft_may_be_sampled_more_often_than_operations_succeed(
+    tmp_path: Path,
+) -> None:
+    """TTFT is per provider request, not per operation.
+
+    One operation can carry several token-producing requests — a resumed
+    verification probe re-runs a configuration that already succeeded — so a
+    TTFT count above `successful_operations` is honest data, not a forgery.
+    """
+    path = contribution(tmp_path)
+    mutate(path, lambda data: data["observations"][0]["ttft_ms"].update({"count": 186}))
+
+    validate_bundle(path, root=tmp_path, now=NOW)
 
 
 def test_source_version_may_be_omitted(tmp_path: Path) -> None:
