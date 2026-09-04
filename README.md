@@ -13,10 +13,8 @@ records, stable user identifiers, or provider credentials.
 The [documentation](https://fergusfettes.github.io/basemode-evidence/) describes the contribution
 contract, privacy boundary, validation policy, compiled artifacts, and release process.
 
-> [!IMPORTANT]
-> `schemas/contribution-v1.schema.json` is a provisional pinned schema matching the current
-> documented contract. It will be replaced by the canonical basemode-generated schema and fixtures once
-> that exporter lands. Existing schema versions remain pinned after publication.
+`schemas/contribution-v1.schema.json` pins the v1 contract. Published schema versions are never
+changed in place; a compatibility change requires a new schema version.
 
 ## Contributing evidence
 

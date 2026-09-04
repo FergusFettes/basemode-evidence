@@ -21,8 +21,7 @@ documentation build, and wheel/sdist builds. CI repeats this gate on Python 3.11
 - Validation and compilation never need provider credentials or network calls.
 - Do not average submitted percentiles or invent daily precision.
 - Corrections use versioned revocations; accepted evidence and Git history stay intact.
-- The provisional contribution schema stays isolated until basemode supplies its canonical schema,
-  fixtures, and byte serializer.
+- Published schema versions are immutable; a compatibility change requires a new schema version.
 
 ## Change map
 

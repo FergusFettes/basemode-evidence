@@ -22,8 +22,8 @@ remain attributable to their accounts, so contributions are privacy-preserving r
 - [[Compiled Dataset]] documents the supported machine-consumption interface.
 - [[Revocations and Releases]] covers corrections without history rewriting.
 
-!!! note "Provisional schema"
+## Schema stability
 
-    The current pinned v1 schema implements the documented contract while basemode's canonical
-    exporter is being completed. It stays isolated and will be reconciled with the canonical schema,
-    fixtures, and byte serializer before accepting the first real contribution.
+`schemas/contribution-v1.schema.json` pins the v1 contract. A published schema version is never
+changed in place; any compatibility change requires a new schema version, and older versions stay
+valid for the bundles already accepted against them.

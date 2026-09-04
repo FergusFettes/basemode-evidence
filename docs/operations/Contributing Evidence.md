@@ -1,8 +1,7 @@
 # Contributing Evidence
 
-Basemode will eventually provide preview, export, and optional GitHub orchestration. Until its
-canonical exporter lands, the checked-in schema and test fixture are provisional and real public
-contributions should wait.
+Basemode generates the bundle, provides the content-free preview, and optionally orchestrates the
+pull request. This repository only validates and compiles what arrives.
 
 For a generated bundle:
 

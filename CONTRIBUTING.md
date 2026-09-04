@@ -30,5 +30,5 @@ Add tests for observable behavior and keep commits small and logically scoped. S
 changes require a new schema version. Accepted evidence is never edited or deleted; use a versioned
 revocation instead.
 
-Daily aggregation and Parquet remain deferred until the canonical basemode exporter provides data
-that can support them without inventing precision.
+Daily aggregation and Parquet remain out of scope: a multi-day aggregate cannot be truthfully
+divided into daily rows. See [Architecture](docs/concepts/Architecture.md) for the reasoning.
