@@ -12,6 +12,7 @@ from typing import Any
 
 from jsonschema import Draft202012Validator, FormatChecker
 
+from .identity import canonical_endpoint
 from .validate import ValidationError, repository_root, validate_bundle
 
 FAILURES = (
@@ -110,7 +111,12 @@ def _aggregate(bundles: list[tuple[Path, dict[str, Any]]]) -> dict[str, Any]:
     totals: dict[str, dict[str, Any]] = {}
     for _path, bundle in bundles:
         for row in bundle["observations"]:
-            total = totals.setdefault(row["endpoint"], _empty_total(row["endpoint"]))
+            # Contributions are immutable and arrive from whatever basemode
+            # version the contributor runs, so one model can appear under
+            # several spellings. Group on the canonical name instead of
+            # asking anyone to rewrite evidence they already published.
+            endpoint = canonical_endpoint(row["endpoint"])
+            total = totals.setdefault(endpoint, _empty_total(endpoint))
             for field in COUNT_FIELDS:
                 total[field] += row.get(field, 0)
             if "cost_usd" in row:
@@ -178,7 +184,8 @@ def _write_sqlite(
             ) WITHOUT ROWID;
             CREATE TABLE observations (
                 bundle_id TEXT NOT NULL, row_number INTEGER NOT NULL,
-                endpoint TEXT NOT NULL, strategy TEXT NOT NULL, source TEXT NOT NULL,
+                endpoint TEXT NOT NULL, canonical_endpoint TEXT NOT NULL,
+                strategy TEXT NOT NULL, source TEXT NOT NULL,
                 source_version TEXT, operations INTEGER NOT NULL,
                 successful_operations INTEGER NOT NULL, initial_attempts INTEGER NOT NULL,
                 successful_initial_attempts INTEGER NOT NULL, recovered_operations INTEGER NOT NULL,
@@ -214,11 +221,12 @@ def _write_sqlite(
                 latency = row.get("latency_ms", {})
                 ttft = row.get("ttft_ms", {})
                 connection.execute(
-                    "INSERT INTO observations VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                    "INSERT INTO observations VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
                     (
                         bundle["bundle_id"],
                         index,
                         row["endpoint"],
+                        canonical_endpoint(row["endpoint"]),
                         row["strategy"],
                         row["source"],
                         row.get("source_version"),

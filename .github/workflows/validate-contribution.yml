@@ -39,6 +39,8 @@ jobs:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: |
+          # pipefail, or `tee` reports success and an invalid contribution merges.
+          set -o pipefail
           "$RUNNER_TEMP/validator/bin/basemode-evidence" \
             validate-pr --base "$BASE_SHA" --head "$HEAD_SHA" | tee summary.txt
           {

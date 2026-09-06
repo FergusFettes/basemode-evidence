@@ -57,5 +57,16 @@ request that produced a token, so its `count` is bounded by `attempts` instead. 
 local `prompt_tokens` and `completion_tokens` intentionally serialize as `input_tokens` and
 `output_tokens` in this public schema.
 
+Endpoints are named canonically as `provider/creator/model`
+(`deepinfra/deepseek/deepseek-v3.2`). Contributions are immutable, and older
+basemode versions sent whatever a single provider called a model, so the
+compiled dataset folds those onto the canonical name at read time — no
+published bundle is ever rewritten, and the per-bundle tables record exactly
+what each one said alongside the canonical name. `src/basemode_evidence/identity.py`
+holds the creator vocabulary and mirrors `basemode.identity`; keep the two in
+step. An identifier may contain `:` for a provider's variant suffixes
+(`:free`, `:batch`) and `~` for its floating aliases, but never `://`, so a URL
+cannot be smuggled in as an endpoint name.
+
 The machine-enforced contract is the pinned
 [`schemas/contribution-v1.schema.json`](https://github.com/FergusFettes/basemode-evidence/blob/main/schemas/contribution-v1.schema.json).
